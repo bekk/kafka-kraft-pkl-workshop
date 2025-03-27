@@ -39,7 +39,6 @@ Dette er en workshop i å bruke PKL for å generere Kafka-konfigurasjoner og imp
 
 ### 6. Monitoring og Logging av Kafka
 - Implementere Prometheus og Grafana for monitoring
-- Sette opp logging med ELK Stack
 - Forstå viktige Kafka-metrikker
 
 ### 7. Kafka Connect og Ekstern Integrasjon
