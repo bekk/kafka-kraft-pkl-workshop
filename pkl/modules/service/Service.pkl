@@ -1,0 +1,34 @@
+module dockercompose.service.Service
+
+import "./Build.pkl"
+import "./Network.pkl"
+import "../types/Restart.pkl"
+import "./Port.pkl"
+import "./Volume.pkl"
+
+build: Build?
+
+hostname: String?
+
+container_name: String?
+
+environment: Mapping<String, String | Int>?
+
+extra_hosts: Mapping<String, String>?
+
+image: String?
+
+links: Listing<String>?
+
+networks: Listing<String>
+
+restart: Restart.Restart = "no"
+
+ports: Listing<String>?
+
+user: String?
+
+volumes: Listing<String>?
+
+depends_on: Listing<String>?
+

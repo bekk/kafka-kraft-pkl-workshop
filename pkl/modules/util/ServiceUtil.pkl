@@ -1,0 +1,41 @@
+module dockercompose.util.ServiceUtil
+
+import "../service/Service.pkl"
+
+cluster_id: String = "MkU3OEVBNTcwNTJENDM2Qk"
+
+function generateControllerService(controller_id: Int, controller_ids: List<Int>) = (Service) {
+    image = "confluentinc/cp-kafka:7.5.0"
+    hostname = "controller-\(controller_id)"
+    container_name = "controller-\(controller_id)"
+    environment {
+        ["KAFKA_PROCESS_ROLES"] = "controller"
+        ["KAFKA_NODE_ID"] = controller_id
+        ["KAFKA_LISTENERS"] = "CONTROLLER://controller-\(controller_id):29092"
+        ["KAFKA_CONTROLLER_QUORUM_VOTERS"] = controller_ids.map((i) -> "\(i)@controller-\(i):29092").join(",")
+        ["KAFKA_CONTROLLER_LISTENER_NAMES"] = "CONTROLLER"
+        ["CLUSTER_ID"] = cluster_id
+    }
+}
+
+function generateBrokerService(broker_id: Int, controller_ids: List<Int>, broker_ids: List<Int>) = (Service) {
+    image = "confluentinc/cp-kafka:7.5.0"
+    hostname = "broker-\(broker_id)"
+    container_name = "broker-\(broker_id)"
+    environment {
+        ["KAFKA_NODE_ID"] = controller_ids.length + broker_id
+        ["KAFKA_PROCESS_ROLES"] = "broker"
+        ["KAFKA_LISTENER_SECURITY_PROTOCOL_MAP"] = "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+        ["KAFKA_ADVERTISED_LISTENERS"] = "PLAINTEXT://broker-\(broker_id):9092"
+        ["KAFKA_CONTROLLER_QUORUM_VOTERS"] = controller_ids.map((i) -> "\(i)@controller-\(i):29092").join(",")
+        ["KAFKA_CONTROLLER_LISTENER_NAMES"] = "CONTROLLER"
+        ["KAFKA_LISTENERS"] = "PLAINTEXT://broker-\(broker_id):9092"
+        ["KAFKA_INTER_BROKER_LISTENER_NAME"] = "PLAINTEXT"
+        ["CLUSTER_ID"] = cluster_id
+
+        ["KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"] = "\(broker_ids.length)"
+        ["KAFKA_DEFAULT_REPLICATION_FACTOR"]       = "\(broker_ids.length)"
+        ["KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR"] = "\(broker_ids.length)"
+        ["KAFKA_TRANSACTION_STATE_LOG_MIN_ISR"]    = "\(broker_ids.length)"
+    }
+}

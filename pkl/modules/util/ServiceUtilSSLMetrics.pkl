@@ -1,0 +1,72 @@
+module dockercompose.util.ServiceUtilSSL
+
+import "../service/Service.pkl"
+
+cluster_id: String = "MkU3OEVBNTcwNTJENDM2Qk"
+
+function generateControllerService(controller_id: Int, controller_ids: List<Int>) = (Service) {
+    image = "confluentinc/cp-kafka:7.5.0"
+    hostname = "controller-\(controller_id)"
+    container_name = "controller-\(controller_id)"
+    volumes = new Listing { 
+        "./jmx:/etc/kafka/jmx" 
+    }
+    environment {
+        ["KAFKA_PROCESS_ROLES"]                 = "controller"
+        ["KAFKA_NODE_ID"]                       = controller_id
+        ["KAFKA_LISTENERS"]                     = "CONTROLLER://controller-\(controller_id):29092"
+        ["KAFKA_CONTROLLER_LISTENER_NAMES"]     = "CONTROLLER"
+        ["KAFKA_LISTENER_SECURITY_PROTOCOL_MAP"] = "CONTROLLER:PLAINTEXT"
+        ["KAFKA_CONTROLLER_QUORUM_VOTERS"] = controller_ids.map((i) -> "\(i)@controller-\(i):29092").join(",")
+
+        ["KAFKA_JMX_HOSTNAME"] = "0.0.0.0"
+        ["KAFKA_OPTS"] = "-javaagent:/etc/kafka/jmx/jmx_prometheus_javaagent.jar=9201:/etc/kafka/jmx/kafka_jmx_config.yml"
+
+        ["CLUSTER_ID"] = cluster_id
+    }
+}
+
+function generateBrokerService(broker_id: Int, controller_ids: List<Int>, broker_ids: List<Int>) = (Service) {
+    image = "confluentinc/cp-kafka:7.5.0"
+    hostname = "broker-\(broker_id)"
+    container_name = "broker-\(broker_id)"
+    volumes = new Listing { 
+        "./certs:/etc/kafka/secrets"
+        "./jmx:/etc/kafka/jmx" 
+    }
+    environment {
+        ["KAFKA_NODE_ID"]           = controller_ids.length + broker_id
+        ["KAFKA_PROCESS_ROLES"]     = "broker"
+        ["KAFKA_LISTENERS"]         = "SSL://broker-\(broker_id):9092"
+        ["KAFKA_ADVERTISED_LISTENERS"] = "SSL://broker-\(broker_id):9092"
+        ["KAFKA_LISTENER_SECURITY_PROTOCOL_MAP"] = "SSL:SSL,CONTROLLER:PLAINTEXT"
+        ["KAFKA_INTER_BROKER_LISTENER_NAME"] = "SSL"
+        ["KAFKA_CONTROLLER_LISTENER_NAMES"]   = "CONTROLLER"
+        ["KAFKA_CONTROLLER_QUORUM_VOTERS"]    = controller_ids.map((i) -> "\(i)@controller-\(i):29092").join(",")
+
+        ["KAFKA_SSL_KEYSTORE_TYPE"] = "JKS"
+        ["KAFKA_SSL_KEYSTORE_LOCATION"] = "/etc/kafka/secrets/"
+        ["KAFKA_SSL_KEYSTORE_FILENAME"] = "broker-\(broker_id)-keystore.jks"
+        ["KAFKA_SSL_KEYSTORE_CREDENTIALS"] = "broker-\(broker_id)-password"
+
+        ["KAFKA_SSL_TRUSTSTORE_TYPE"] = "JKS"
+        ["KAFKA_SSL_TRUSTSTORE_LOCATION"] = "/etc/kafka/secrets/"
+        ["KAFKA_SSL_TRUSTSTORE_FILENAME"] = "ca-truststore.jks"
+        ["KAFKA_SSL_TRUSTSTORE_CREDENTIALS"] = "ca-password"
+
+        ["KAFKA_SSL_KEY_CREDENTIALS"] = "broker-\(broker_id)-password"
+
+        ["KAFKA_SSL_CLIENT_AUTH"]     = "required"
+        ["KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM"] = "HTTPS"
+
+        ["KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"]         = "\(broker_ids.length)"
+        ["KAFKA_DEFAULT_REPLICATION_FACTOR"]               = "\(broker_ids.length)"
+        ["KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR"] = "\(broker_ids.length)"
+        ["KAFKA_TRANSACTION_STATE_LOG_MIN_ISR"]            = "\(broker_ids.length)"
+
+        ["KAFKA_JMX_HOSTNAME"] = "0.0.0.0"
+        ["KAFKA_OPTS"] = "-javaagent:/etc/kafka/jmx/jmx_prometheus_javaagent.jar=9201:/etc/kafka/jmx/kafka_jmx_config.yml"
+
+        ["CLUSTER_ID"] = cluster_id
+    }
+}
