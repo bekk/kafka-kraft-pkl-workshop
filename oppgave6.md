@@ -2,9 +2,7 @@
 
 ## Mål
 - Implementere Prometheus og Grafana for monitoring
-- Sette opp logging med ELK Stack
 - Forstå viktige Kafka-metrikker
-- Lære å analysere Kafka-logs
 
 ## Teori
 
@@ -12,11 +10,6 @@
 - **Prometheus**: Samler metrikker fra Kafka
 - **Grafana**: Visualiserer metrikker
 - **JMX**: Java Management Extensions for Kafka-metrikker
-
-### Logging i Kafka
-- **ELK Stack**: Elasticsearch, Logstash, Kibana
-- **Kafka Connect**: For å sende logs til Elasticsearch
-- **Logstash**: For å prosessere og transformere logs
 
 ## Steg
 
